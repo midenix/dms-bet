@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMS BET - Online Betting Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-image: url('ChatGPT Image Apr 3, 2025, 11_29_24 AM.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            background: #343a40;
+            overflow: hidden;
+            color: white;
+            display: flex;
+            justify-content: center;
+        }
+        nav ul li {
+            padding: 14px 20px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        header {
+            background: #ffc107;
+            color: white;
+            padding: 50px;
+        }
+        section {
+            display: none;
+            padding: 20px;
+            margin: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        input {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            width: 80%;
+        }
+        .go-back {
+            background: darkred !important;
+            color: white;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+        .inline-fields {
+            display: flex;
+            justify-content: center;
+            gap: 0px;
+        }
+        .inline-fields input {
+            width: 38%;
+        }
+        .phone-field, .otp-field {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 80%;
+            margin: auto;
+        }
+        .phone-field input, .otp-field input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+        }
+        .phone-field button, .otp-field button {
+            padding: 10px;
+            font-size: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 0 4px 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        window.onload = function() {
+            showPage('home');
+        };
+    </script>
+    <nav>
+        <ul>
+            <li><a onclick="showPage('home')">Home</a></li>
+            <li><a onclick="showPage('betting')">Betting</a></li>
+            <li><a onclick="showPage('live-scores')">Live Scores</a></li>
+            <li><a onclick="showPage('payments')">Payments</a></li>
+            <li><a onclick="showPage('login')">Login</a> | <a onclick="showPage('signup')">Sign Up</a></li>
+        </ul>
+    </nav>
+
+    <section id="home">
+        <h2>Welcome to DMS BET</h2>
+        <p>Your trusted online betting platform.</p>
+    </section>
+
+    <section id="betting">
+        <h2>Betting Section</h2>
+        <p>Place your bets here.</p>
+    </section>
+
+    <section id="live-scores">
+        <h2>Live Scores</h2>
+        <p>Live match updates will appear here.</p>
+    </section>
+
+    <section id="payments">
+        <h2>Payments</h2>
+        <p>Manage your payments securely.</p>
+    </section>
+
+    <section id="login">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <div class="cf-turnstile" data-sitekey="alex.ns.cloudflare.com"></div>
+        <button onclick="login()">Login</button>
+        <p>Don't have an account? <a onclick="showPage('signup')">Sign Up</a></p>
+    </section>
+
+    <section id="signup">
+        <h2>Sign Up</h2>
+        <input type="text" id="surname" placeholder="Surname">
+        <div class="inline-fields">
+            <input type="text" id="firstname" placeholder="First Name">
+            <input type="text" id="lastname" placeholder="Last Name">
+        </div>
+        <div class="inline-fields">
+            <input type="text" id="nin" placeholder="NIN">
+            <input type="text" id="bvn" placeholder="BVN">
+        </div>
+        <div class="phone-field">
+            <input type="text" id="phone" placeholder="Phone Number">
+            <button onclick="sendOTP()">Send OTP</button>
+        </div>
+        <div class="otp-field">
+            <input type="text" id="otp" placeholder="Enter OTP">
+            <button onclick="verifyOTP()">Verify OTP</button>
+        </div>
+        <div class="inline-fields">
+            <input type="email" id="email" placeholder="Email">
+        </div>
+        <input type="password" id="new-password" placeholder="Create Password">
+        <input type="password" id="confirm-password" placeholder="Confirm Password">
+        <div class="cf-turnstile" data-sitekey="alex.ns.cloudflare.com"></div>
+        <button onclick="signup()">Sign Up</button>
+        <button onclick="showPage('login')" class="go-back">⬅ Go Back</button>
+    </section>
+
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('section').forEach(section => section.style.display = 'none');
+            document.getElementById(pageId).style.display = 'block';
+        }
+
+        function sendOTP() {
+            const phone = document.getElementById('phone').value;
+            fetch('http://localhost:3000/send-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ phone })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(err => console.error(err));
+        }
+
+        function verifyOTP() {
+            const phone = document.getElementById('phone').value;
+            const otp = document.getElementById('otp').value;
+            fetch('http://localhost:3000/verify-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ phone, otp })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(err => console.error(err));
+        }
+    </script>
+</body>
+</html>
